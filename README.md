@@ -9,3 +9,5 @@ This will be the GUI for the ground control station, which follows the following
     - 5x valves
   - 4x Pressure Transducers
 
+Here's a diagram of these components;
+![Ground control diagram](diagram.jpeg "Ground control diagram")
