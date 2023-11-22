@@ -17,7 +17,7 @@ class state_signals(QtCore.QObject):
     clear_output = QtCore.Signal()
 
 class state_management_widget(QtWidgets.QWidget):
-    def __init__(self, output, file_management_panel : file_management_widget, thread_pool, graphs, numerical_displays, start) -> None:
+    def __init__(self, output, file_management_panel: file_management_widget, thread_pool, graphs, numerical_displays, start) -> None:
         super().__init__()
         self.layout = QtWidgets.QFormLayout(self)
 

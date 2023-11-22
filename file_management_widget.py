@@ -28,7 +28,6 @@ class file_management_widget(QtWidgets.QWidget):
 
         self.output = output
 
-
         self.struct_string = None
         self.output_location = None
         self.header = None

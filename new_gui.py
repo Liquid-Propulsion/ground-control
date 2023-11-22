@@ -30,9 +30,23 @@ class GroundControlWindow(QtWidgets.QWidget):
         self.setup_graphs()
         self.init_widgets()
 
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Space:
-            self.command_panel.send_command("COMMAND: ABORT")
+    def setup_number_displays(self):
+        self.numerical_displays = []
+        self.numerical_displays.append(custom_number_display(1, "Current State: Vibing"))
+        self.layout.addWidget(self.numerical_displays[0], 4, 2)
+
+    def setup_graphs(self):
+        self.graphs = []
+
+        self.graphs.append(custom_graph_widget(indexes_in_struct=(2, 3, 4), names=('Nitrogen Line Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=(8, 9, 10), names=('Oxygen Line Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=(5, 6, 7), names=('Ethanol Tank Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=(11, 12, 13), names=('Igniter Chamber Pressure'), start=self.program_start_time))
+       
+        self.layout.addWidget(self.graphs[0], 0, 0)
+        self.layout.addWidget(self.graphs[1], 0, 1)
+        self.layout.addWidget(self.graphs[2], 1, 0)
+        self.layout.addWidget(self.graphs[3], 1, 1)
 
     def init_widgets(self):
         #File input
@@ -54,30 +68,6 @@ class GroundControlWindow(QtWidgets.QWidget):
         self.command_panel.command_signal.connect(self.state_management_panel.send_command)
         self.state_management_panel.command_panel = self.command_panel
 
-        # #Valve Actuation output
-        # self.valve_actuation_panel = commanding_panel()
-        # self.layout.addWidget(self.valve_actuation_panel, 1, 2, 1, 1)
-    
-
-    def setup_number_displays(self):
-        self.numerical_displays = []
-        self.numerical_displays.append(custom_number_display(1, "Current State: Vibing"))
-        self.layout.addWidget(self.numerical_displays[0], 4, 2)
-        self.layout.setColumnStretch(2, 4)
-
-    def setup_graphs(self):
-        self.graphs = []
-
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(2, 3, 4), names=('Nitrogen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(8, 9, 10), names=('Oxygen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(5, 6, 7), names=('Ethanol Tank Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(11, 12, 13), names=('Igniter Chamber Pressure'), start=self.program_start_time))
-       
-        self.layout.addWidget(self.graphs[0], 0, 0)
-        self.layout.addWidget(self.graphs[1], 0, 1)
-        self.layout.addWidget(self.graphs[2], 1, 0)
-        self.layout.addWidget(self.graphs[3], 1, 1)
-
     def output(self, text):
         self.console.append(text)
 
@@ -86,6 +76,10 @@ class GroundControlWindow(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         self.state_management_panel.stop_listening()
+    
+    # def keyPressEvent(self, event):
+    #     if event.key() == QtCore.Qt.Key_Space:
+    #         self.command_panel.send_command("COMMAND: ABORT")
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
