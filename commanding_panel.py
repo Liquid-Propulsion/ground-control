@@ -12,11 +12,33 @@ class valve_actuation_widget(QtWidgets.QWidget):
         self.layout.addWidget(self.label, 0, 0)
 
         self.open_button = QtWidgets.QPushButton("Open")
-        self.open_button.setStyleSheet("background: green; color: white; font-size: 13px;")
+        self.open_button.setStyleSheet("""
+            QPushButton {
+                background: green;
+                color: white;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background: #5cbd5e;
+            }
+        """)
+        self.open_button.setCursor(QtCore.Qt.PointingHandCursor) # Change cursor when hovering over the button
         self.layout.addWidget(self.open_button, 1, 0)
 
         self.close_button = QtWidgets.QPushButton("Close")
-        self.close_button.setStyleSheet("background: red; color: white; font-size: 13px;")
+        self.close_button.setStyleSheet("""
+            QPushButton {
+                background: red;
+                color: white;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background: #ff7a73;
+            }
+        """)
+        self.close_button.setCursor(QtCore.Qt.PointingHandCursor) # Change cursor when hovering over the button
         self.layout.addWidget(self.close_button, 2, 0)
 
 class commanding_panel(QtWidgets.QLabel):
@@ -58,11 +80,33 @@ class commanding_panel(QtWidgets.QLabel):
         self.layout.addWidget(self.sequence_command, 3, 0, 1, 2)
         
         self.start_sequence_button = QtWidgets.QPushButton("Start Sequence")
-        self.start_sequence_button.setStyleSheet("background: green; color: white; font-size: 13px;")
+        self.start_sequence_button.setStyleSheet("""
+            QPushButton {
+                background: green;
+                color: white;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background: #5cbd5e;
+            }
+        """)
+        self.start_sequence_button.setCursor(QtCore.Qt.PointingHandCursor)
         self.layout.addWidget(self.start_sequence_button, 4, 0, 1, 2)
         
         self.abort_sequence_button = QtWidgets.QPushButton("Abort Sequence")
-        self.abort_sequence_button.setStyleSheet("background: red; color: white; font-size: 13px;")
+        self.abort_sequence_button.setStyleSheet("""
+            QPushButton {
+                background: red;
+                color: white;
+                font-size: 13px;
+            }
+
+            QPushButton:hover {
+                background: #ff7a73;
+            }
+        """)
+        self.abort_sequence_button.setCursor(QtCore.Qt.PointingHandCursor)
         self.layout.addWidget(self.abort_sequence_button, 5, 0, 1, 2)
 
     def connect_functionality(self):
