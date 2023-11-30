@@ -3,4 +3,4 @@
 ._*
 
 # Arduino
-.theia
+*.theia
