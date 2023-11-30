@@ -6,7 +6,7 @@ from struct import *
 
 
 class RF():
-    def __init__(self, port : str, baud : int, current_value: Array, telem_frame_queue: Queue, log_queue: Queue, handled_most_recent : Value, backlog_threshold = 800000, telem_string='=IiffffI'):
+    def __init__(self, port : str, baud : int, current_value: Array, telem_frame_queue: Queue, log_queue: Queue, handled_most_recent : Value, backlog_threshold = 800000, telem_string='=Iiff'): #telem_string used to be '=IiffffI'
 
         self.port = port
         self.baud = baud
@@ -17,7 +17,7 @@ class RF():
         self._delay_between_packets = .05 #Delay (in s) if there is not enough data in input buffer to be read into something meaningful
 
         self._transmittion_constants = {
-            'TELEM_HEADER': [239, 190, 173, 222], #4 byte heaeder to indicate start of telem frame, 0xDEADBEEF
+            'TELEM_HEADER': [239, 190, 173, 222], #4 byte header to indicate start of telem frame, 0xDEADBEEF
             'STRING_HEADER': [206, 250, 186, 186], #4 byte header to indicate start of string data, 0xBABAFACE
             'FOOTER': 3405707998, #4 byte value to indicate ending of string or telem frame 0xCAFEFADE, 222, 250 254, 202
             'backlog_threshold' : backlog_threshold #how many bytes to be in list for a backlog
