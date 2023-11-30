@@ -4,3 +4,6 @@
 
 # Arduino
 .theia
+list
+guienv
+activate
