@@ -38,10 +38,10 @@ class GroundControlWindow(QtWidgets.QWidget):
     def setup_graphs(self):
         self.graphs = []
 
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(2), names=('Nitrogen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(3), names=('Oxygen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(4), names=('Ethanol Tank Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=(5), names=('Igniter Chamber Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[1], names=('Nitrogen Line Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[2], names=('Oxygen Line Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[3], names=('Ethanol Tank Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[4], names=('Igniter Chamber Pressure'), start=self.program_start_time))
        
         self.layout.addWidget(self.graphs[0], 0, 0)
         self.layout.addWidget(self.graphs[1], 0, 1)
