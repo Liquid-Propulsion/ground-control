@@ -2,6 +2,7 @@ from multiprocessing import Queue, Array, Value, Process, Pipe
 from time import sleep
 
 import serial
+import socket
 from struct import *
 
 
@@ -36,36 +37,52 @@ class RF():
         self._telem_frame_queue = telem_frame_queue
         self._log_queue = log_queue
 
+
+        self.server_ip = '';
+        self.server_port = 8080;
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Connect to the server
+        self.client_socket.connect((self.server_ip, self.server_port))
+        print("Connected to server")
+
     def connect_serial(self, port: str, baud: int) -> bool:
-        try:
-            self._comport = serial.Serial(port, baud)
-            self._comport.reset_input_buffer()
-            return True
-        except serial.SerialException:
-            return False
+        # try:
+        #     self._comport = serial.Serial(port, baud)
+        #     self._comport.reset_input_buffer()
+        #     return True
+        # except serial.SerialException:
+        #     return False
+        # Create a socket object
+        pass
 
     def disconnect_serial(self):
-        try:
-            self._comport.close()
-            return True
-        except ValueError:
-            return False
+        # try:
+        #     self._comport.close()
+        #     return True
+        # except ValueError:
+        #     return False
+        self.client_socket.close()
 
 
     def _listen_loop(self, running: Value):
-        self._comport = serial.Serial(self.port, self.baud)
-        self._comport.reset_input_buffer()
+        # self._comport = serial.Serial(self.port, self.baud)
+        # self._comport.reset_input_buffer()
 
         while(running.value == 1):
-            if(self.input_receiver.poll()):
-                val = self.input_receiver.recv()
-                if (val == "dump"):
-                    self._log_queue.put(str(self._bytes_received))
-                else:
-                    self._comport.write(bytes((val+'\0').encode('ascii', 'replace')))
-            self.read_binary()
+            # if(self.input_receiver.poll()):
+            #     val = self.input_receiver.recv()
+            #     if (val == "dump"):
+            #         self._log_queue.put(str(self._bytes_received))
+            #     else:
+            #         self._comport.write(bytes((val+'\0').encode('ascii', 'replace')))
+            # self.read_binary()
+            data = self.client_socket.recv(1024)
+            if not data:
+                break
+            print("Received:", data.decode())
         
-        self._comport.close()
+        # self._comport.close()
 
     #Starts a separate process that will connect serial port then listen for data
     def start_listen_loop(self, running: Value):
