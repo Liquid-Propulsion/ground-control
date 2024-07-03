@@ -4,3 +4,6 @@
 
 # Arduino
 .theia
+
+output/
+__pycache__/
