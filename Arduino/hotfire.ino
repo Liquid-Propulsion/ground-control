@@ -18,6 +18,8 @@ HX711 scale;
 
 float calibration_factor = -409;
 
+unsigned long timer = millis(); // setting up the timer variable
+
 // As defined rn, struct string is I4fI
 struct data {
   uint32_t header;
@@ -58,6 +60,8 @@ void setup() {
 void loop() {
   SendData();
   CheckForCommand();
+
+  timer = millis(); // constantly update the timer while the main loop is running, but it will NOT update while one of the hotfire commands is running
 }
 
 float ReadSensor(int pin) {
@@ -224,7 +228,10 @@ void DumpPrep() {
   digitalWrite(bleedPin, LOW);
   digitalWrite(ethanolPin, HIGH);
   digitalWrite(nitrogenPin, HIGH);
-  delay(500);
+  //delay(500);
+  while((millis() - timer) < 500) {
+    SendData();
+  }
   digitalWrite(nitrogenPin, LOW);
 }
 
@@ -239,22 +246,37 @@ void HotFire2() {
   digitalWrite(oxygenPin, LOW);
   digitalWrite(sparkPin, LOW);
   analogWrite(rpmPin, 5);
-  delay(300);
+  //delay(300);
+  while((millis() - timer) < 300) {
+    SendData();
+  }
   digitalWrite(ethanolPin, LOW);
-  delay(2000);
+  //delay(2000);
+  while((millis() - timer) < 2300) {
+    SendData();
+  }
   digitalWrite(ethanolPin, HIGH);
+  //delay(300);
+  while((millis() - timer) < 2600) {
+    SendData();
+  }
   digitalWrite(sparkPin, HIGH);
   analogWrite(rpmPin, 0);
-  delay(300);
   digitalWrite(oxygenPin, HIGH);
 }
 
 void Depress() {
   digitalWrite(nitrogenPin, HIGH);
-  delay(100);
+  //delay(100);
+  while((millis() - timer) < 100) {
+    SendData();
+  }
   digitalWrite(bleedPin, HIGH);
   digitalWrite(ethanolPin, LOW);
-  delay(1000);
+  //delay(1000);
+  while((millis() - timer) < 1100) {
+    SendData();
+  }
   digitalWrite(ethanolPin, HIGH);
 }
 
