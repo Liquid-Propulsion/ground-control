@@ -16,7 +16,9 @@ const int LC_Out_Pin = 3; // Data
 
 HX711 scale;
 
-float calibration_factor = -409;
+// RECOMMEND CALIBRATING THESE BEFORE A HOTFIRE
+long offset = 1102767;
+float calibration_factor = 358.024108;
 
 unsigned long timer = millis(); // setting up the timer variable
 
@@ -53,8 +55,8 @@ void setup() {
   pinMode(Ign_PT_Pin, INPUT);
 
   scale.begin(LC_Out_Pin, LC_Clock_Pin);
+  scale.set_offset(offset);
   scale.set_scale(calibration_factor);
-  scale.tare(); // Zeros load cell
 }
 
 void loop() {
@@ -82,7 +84,7 @@ float ReadSensor(int pin) {
 }
 
 float ReadLoadCell(int clock, int data) {
-  return scale.get_units(); // returns lbs
+  return scale.get_units(); // returns GRAMS
 }
 
 void SendData() {
