@@ -83,6 +83,23 @@ float ReadSensor(int pin) {
   return psi;
 }
 
+float ReadSensor2(int pin) {
+  int rawVal = analogRead(pin); // read the input pin
+  float rawVolt = (float)rawVal / 204.6; // convert to a voltage value 0.0 to 5.0 volts
+  // 0.5V = 0.0psi
+  // 4.5V = 200.0psi
+  if(rawVolt<0.5) {
+    rawVolt = 0.5;
+  }
+  else if(rawVolt>4.5) {
+    rawVolt = 4.5;
+  }
+  float normalized = (rawVolt - 0.5) / (4.5 - 0.5); // normalize from 0.0 to 1.0 --> 0.0 = 0psig, 1.0 = 200psig
+  float psi = normalized * 2500; // convert to final psig value
+
+  return psi;
+}
+
 float ReadLoadCell(int clock, int data) {
   return scale.get_units(); // returns GRAMS
 }
@@ -91,7 +108,7 @@ void SendData() {
   uint32_t header = 0xDEADBEEF;
   uint32_t footer = 0xCAFEFADE;
   
-  float n2_pt = ReadSensor(N2_PT_Pin);
+  float n2_pt = ReadSensor2(N2_PT_Pin);
   float o2_pt = ReadSensor(O2_PT_Pin);
   float ign_pt = ReadSensor(Ign_PT_Pin);
   float load_cell = ReadLoadCell(LC_Clock_Pin, LC_Out_Pin);
