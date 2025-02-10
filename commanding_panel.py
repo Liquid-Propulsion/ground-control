@@ -59,25 +59,33 @@ class commanding_panel(QtWidgets.QLabel):
         self.nitrogen_valve = valve_actuation_widget("Nitrogen Valve")
         self.layout.addWidget(self.nitrogen_valve, 0, 0)
 
-        # Bleed Valve Actuation
-        self.bleed_valve = valve_actuation_widget("Bleed Valve")
-        self.layout.addWidget(self.bleed_valve, 0, 1)
+        # Purge Valve Actuation
+        self.purge_valve = valve_actuation_widget("Purge Valve")
+        self.layout.addWidget(self.purge_valve, 0, 1)
 
-        # Ethanol Valve Actuation
-        self.ethanol_valve = valve_actuation_widget("Ethanol Valve")
-        self.layout.addWidget(self.ethanol_valve, 1, 0)
+        # Main Ethanol Valve Actuation
+        self.main_ethanol_valve = valve_actuation_widget("Main Ethanol Valve")
+        self.layout.addWidget(self.main_ethanol_valve, 1, 0)
 
-        # Oxygen Valve Actuation
-        self.oxygen_valve = valve_actuation_widget("Oxygen Valve")
-        self.layout.addWidget(self.oxygen_valve, 1, 1)
+        # Main Nitrous Valve Actuation
+        self.main_nitrous_valve = valve_actuation_widget("Main Nitrous Valve")
+        self.layout.addWidget(self.main_nitrous_valve, 1, 1)
+        
+        # ASI Ethanol Valve Actuation
+        self.asi_ethanol_valve = valve_actuation_widget("ASI Ethanol Valve")
+        self.layout.addWidget(self.asi_ethanol_valve, 2, 0)
+        
+        # ASI Oxygen Valve Actuation
+        self.asi_oxygen_valve = valve_actuation_widget("ASI Oxygen Valve")
+        self.layout.addWidget(self.asi_oxygen_valve, 2, 1)
 
         # Empty Space
-        self.layout.addWidget(QtWidgets.QLabel(""), 2, 0)
+        self.layout.addWidget(QtWidgets.QLabel(""), 3, 0)
 
         # Sequence Control
         self.sequence_command = QtWidgets.QLineEdit()
         self.sequence_command.setPlaceholderText("Choose Sequence")
-        self.layout.addWidget(self.sequence_command, 3, 0, 1, 2)
+        self.layout.addWidget(self.sequence_command, 4, 0, 1, 2)
         
         self.start_sequence_button = QtWidgets.QPushButton("Start Sequence")
         self.start_sequence_button.setStyleSheet("""
@@ -92,7 +100,7 @@ class commanding_panel(QtWidgets.QLabel):
             }
         """)
         self.start_sequence_button.setCursor(QtCore.Qt.PointingHandCursor)
-        self.layout.addWidget(self.start_sequence_button, 4, 0, 1, 2)
+        self.layout.addWidget(self.start_sequence_button, 5, 0, 1, 2)
         
         self.abort_sequence_button = QtWidgets.QPushButton("Abort Sequence")
         self.abort_sequence_button.setStyleSheet("""
@@ -107,7 +115,7 @@ class commanding_panel(QtWidgets.QLabel):
             }
         """)
         self.abort_sequence_button.setCursor(QtCore.Qt.PointingHandCursor)
-        self.layout.addWidget(self.abort_sequence_button, 5, 0, 1, 2)
+        self.layout.addWidget(self.abort_sequence_button, 6, 0, 1, 2)
 
     def connect_functionality(self):
         # self.sequence_command.returnPressed.connect(self.send_command_and_clear_text)
@@ -117,14 +125,20 @@ class commanding_panel(QtWidgets.QLabel):
         self.nitrogen_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: nitrogen open"))
         self.nitrogen_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: nitrogen close"))
 
-        self.bleed_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: bleed open"))
-        self.bleed_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: bleed close"))
+        self.purge_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: purge open"))
+        self.purge_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: purge close"))
 
-        self.ethanol_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: ethanol open"))
-        self.ethanol_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: ethanol close"))
+        self.main_ethanol_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: main ethanol open"))
+        self.main_ethanol_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: main ethanol close"))
+        
+        self.main_nitrous_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: main nitrous open"))
+        self.main_nitrous_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: main nitrous close"))
+        
+        self.asi_ethanol_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: ASI ethanol open"))
+        self.asi_ethanol_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: ASI ethanol close"))
 
-        self.oxygen_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: oxygen open"))
-        self.oxygen_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: oxygen close"))
+        self.asi_oxygen_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: ASI oxygen open"))
+        self.asi_oxygen_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: ASI oxygen close"))
 
     def open_dropmech(self):
         try:

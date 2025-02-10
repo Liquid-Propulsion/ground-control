@@ -32,21 +32,29 @@ class GroundControlWindow(QtWidgets.QWidget):
 
     def setup_number_displays(self):
         self.numerical_displays = []
-        self.numerical_displays.append(custom_number_display(1, "Current State: Vibing"))
-        self.layout.addWidget(self.numerical_displays[0], 4, 2)
+        self.numerical_displays.append(custom_number_display(1, "Current State: Vibingggggggggggggggg"))
+        self.layout.addWidget(self.numerical_displays[0], 4, 4)
 
     def setup_graphs(self):
         self.graphs = []
 
         self.graphs.append(custom_graph_widget(indexes_in_struct=[1], names=('Nitrogen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[2], names=('Oxygen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[3], names=('Ethanol Tank Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[4], names=('Igniter Chamber Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[2], names=('Ethanol Tank Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[3], names=('Nitrous Line Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[4], names=('Oxygen Line Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[5], names=('Fuel Inlet Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[6], names=('Fuel Outlet Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[7], names=('Engine Chamber Pressure'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[8], names=('Load Cell'), start=self.program_start_time))
        
         self.layout.addWidget(self.graphs[0], 0, 0)
         self.layout.addWidget(self.graphs[1], 0, 1)
-        self.layout.addWidget(self.graphs[2], 1, 0)
-        self.layout.addWidget(self.graphs[3], 1, 1)
+        self.layout.addWidget(self.graphs[2], 0, 2)
+        self.layout.addWidget(self.graphs[3], 0, 3)
+        self.layout.addWidget(self.graphs[4], 1, 0)
+        self.layout.addWidget(self.graphs[5], 1, 1)
+        self.layout.addWidget(self.graphs[6], 1, 2)
+        self.layout.addWidget(self.graphs[7], 1, 3)
 
     def init_widgets(self):
         #File input
@@ -64,7 +72,7 @@ class GroundControlWindow(QtWidgets.QWidget):
 
         #Communication output
         self.command_panel = commanding_panel()
-        self.layout.addWidget(self.command_panel, 0, 2, 2, 1)
+        self.layout.addWidget(self.command_panel, 0, 4, 2, 1)
         self.command_panel.command_signal.connect(self.state_management_panel.send_command)
         self.state_management_panel.command_panel = self.command_panel
 
@@ -86,7 +94,7 @@ if __name__ == "__main__":
     app.setStyle('Fusion')
 
     window = GroundControlWindow()
-    window.resize(800, 600)
+    window.resize(1800, 1000)
     window.show()
     
     sys.exit(app.exec())

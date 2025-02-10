@@ -6,6 +6,8 @@ class custom_graph_widget(pg.PlotWidget):
         super().__init__()
         self.indexes = indexes_in_struct
         self.names = names
+        
+        self.setTitle(names)
 
         self.graphed_values_num = 40
 
