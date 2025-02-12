@@ -1,67 +1,107 @@
-#include <HX711.h>
+#include <Servo.h>
 
-const int nitrogenPin = 13;
-const int oxygenPin = 10;
-const int ethanolPin = 12;
-const int bleedPin = 11;
-const int sparkPin = 9;
-const int rpmPin = 6;
+// Valve Pins
+const int nitrogenPin = 6; // servo (PWM)
+const int purgePin = 0; // servo (PWM)
+const int mainEthanolPin = 0; // servo (PWM)
+const int mainNitrousPin = 0; // servo (PWM)
+const int asiEthanolPin = 0; // solenoid (relay)
+const int asiOxygenPin = 5; // solenoid (relay)
+const int nitrogenBleedPin = 0; // solenoid (relay)
 
-const int N2_PT_Pin = A0;
-const int O2_PT_Pin = A1;
-const int Ign_PT_Pin = A2;
+// Valve Servos
+Servo NitrogenServo;
+Servo PurgeServo;
+Servo MainEthanolServo;
+Servo MainNitrousServo;
 
-const int LC_Clock_Pin = 2; // Clock
-const int LC_Out_Pin = 3; // Data
+// Spark Plug Pins
+const int sparkPin = 0; // to close the relay for the exciter box (relay)
+const int rpmPin = 0; // to write the PWM wave to (PWM)
 
-HX711 scale;
+// PT Pins
+const int NITROGEN_LINE_PT_PIN = A0; // analog in
+const int ETHANOL_TANK_PT_PIN = A0; // analog in
+const int NITROUS_LINE_PT_PIN = A0; // analog in
+const int OXYGEN_LINE_PT_PIN = A0; // analog in
+const int FUEL_INLET_PT_PIN = A0; // analog in
+const int FUEL_OUTLET_PT_PIN = A0; // analog in
+const int CHAMBER_PRESSURE_PT_PIN = A0; // analog in
 
-// RECOMMEND CALIBRATING THESE BEFORE A HOTFIRE
-long offset = 1102767;
-float calibration_factor = 358.024108;
+// Load Cell Pin
+const int LC_PIN = A0; // analog in, need to voltage divide so input is 0.0 - 5.0 volts
+
 
 unsigned long timer = millis(); // setting up the timer variable
 
-// As defined rn, struct string is I4fI
+// As defined rn, struct string is I8fI
 struct data {
   uint32_t header;
   float val1;
   float val2;
   float val3;
   float val4;
+  float val5;
+  float val6;
+  float val7;
+  float val8;
   uint32_t footer;
 };
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600); // 9600 baud ?????? too low ???????
+  Serial.setTimeout(50); // 50 milliseconds
 
+  // Outputs
   pinMode(nitrogenPin, OUTPUT);
-  pinMode(oxygenPin, OUTPUT);
-  pinMode(ethanolPin, OUTPUT);
-  pinMode(bleedPin, OUTPUT);
+  pinMode(purgePin, OUTPUT);
+  pinMode(mainEthanolPin, OUTPUT);
+  pinMode(mainNitrousPin, OUTPUT);
+  pinMode(asiEthanolPin, OUTPUT);
+  pinMode(asiOxygenPin, OUTPUT);
+  pinMode(nitrogenBleedPin, OUTPUT);
   pinMode(sparkPin, OUTPUT);
   pinMode(rpmPin, OUTPUT);
 
-  digitalWrite(nitrogenPin, HIGH);
-  digitalWrite(oxygenPin, HIGH);
-  digitalWrite(ethanolPin, HIGH);
-  digitalWrite(bleedPin, LOW);
+  digitalWrite(asiEthanolPin, HIGH); // want to flip theseeeeeeeeeeeeeeeeeeeeeee (LOW should be default state)
+  digitalWrite(asiOxygenPin, HIGH);
+  digitalWrite(nitrogenBleedPin, HIGH); // normally-open valve
   digitalWrite(sparkPin, HIGH);
 
-  analogWrite(rpmPin, 0);
+  NitrogenServo.attach(nitrogenPin);
+  PurgeServo.attach(purgePin);
+  MainEthanolServo.attach(mainEthanolPin);
+  MainNitrousServo.attach(mainNitrousPin);
 
-  pinMode(N2_PT_Pin, INPUT);
-  pinMode(O2_PT_Pin, INPUT);
-  pinMode(Ign_PT_Pin, INPUT);
+  NitrogenServo.write(180); // 180 degrees = CLOSED
+  PurgeServo.write(180);
+  MainEthanolServo.write(180);
+  MainNitrousServo.write(180);
 
-  scale.begin(LC_Out_Pin, LC_Clock_Pin);
-  scale.set_offset(offset);
-  scale.set_scale(calibration_factor);
+  analogWrite(rpmPin, 0); // 0% duty cycle PWM wave
+
+
+  // Inputs
+  pinMode(NITROGEN_LINE_PT_PIN, INPUT);
+  pinMode(ETHANOL_TANK_PT_PIN, INPUT);
+  pinMode(NITROUS_LINE_PT_PIN, INPUT);
+  pinMode(OXYGEN_LINE_PT_PIN, INPUT);
+  pinMode(FUEL_INLET_PT_PIN, INPUT);
+  pinMode(FUEL_OUTLET_PT_PIN, INPUT);
+  pinMode(CHAMBER_PRESSURE_PT_PIN, INPUT);
+  pinMode(LC_PIN, INPUT);
 }
 
 void loop() {
+  //Serial.flush();
+  
   SendData();
+  //delay(10);
+  //Serial.flush();
+
   CheckForCommand();
+  //delay(10);
+  //Serial.flush();
 
   timer = millis(); // constantly update the timer while the main loop is running, but it will NOT update while one of the hotfire commands is running
 }
@@ -87,33 +127,45 @@ float ReadSensor2(int pin) {
   int rawVal = analogRead(pin); // read the input pin
   float rawVolt = (float)rawVal / 204.6; // convert to a voltage value 0.0 to 5.0 volts
   // 0.5V = 0.0psi
-  // 4.5V = 200.0psi
+  // 4.5V = 1000.0psi
   if(rawVolt<0.5) {
     rawVolt = 0.5;
   }
   else if(rawVolt>4.5) {
     rawVolt = 4.5;
   }
-  float normalized = (rawVolt - 0.5) / (4.5 - 0.5); // normalize from 0.0 to 1.0 --> 0.0 = 0psig, 1.0 = 200psig
-  float psi = normalized * 2500; // convert to final psig value
+  float normalized = (rawVolt - 0.5) / (4.5 - 0.5); // normalize from 0.0 to 1.0 --> 0.0 = 0psig, 1.0 = 1000psig
+  float psi = normalized * 1000; // convert to final psig value
 
   return psi;
 }
 
-float ReadLoadCell(int clock, int data) {
-  return scale.get_units(); // returns GRAMS
+float ReadLoadCell(int pin) {
+  int rawVal = analogRead(pin); // read the input pin
+  float rawVolt = (float)rawVal / 204.6; // convert to a voltage value 0.0 to 5.0 volts
+  // 0.0V = 0kg
+  // 5.0V = 1000kg
+  float normalized = rawVolt / 5; // normalize from 0.0 to 1.0 --> 0.0 = 0kg, 1.0 = 1000kg
+  float kg = normalized * 1000; // convert to kg value
+  float lbs = kg * 2.20462; // convert to lbs
+  
+  return lbs;
 }
 
 void SendData() {
   uint32_t header = 0xDEADBEEF;
   uint32_t footer = 0xCAFEFADE;
   
-  float n2_pt = ReadSensor2(N2_PT_Pin);
-  float o2_pt = ReadSensor(O2_PT_Pin);
-  float ign_pt = ReadSensor(Ign_PT_Pin);
-  float load_cell = ReadLoadCell(LC_Clock_Pin, LC_Out_Pin);
+  float one = ReadSensor2(NITROGEN_LINE_PT_PIN);
+  float two = ReadSensor2(ETHANOL_TANK_PT_PIN);
+  float three = ReadSensor2(NITROUS_LINE_PT_PIN);
+  float four = ReadSensor(OXYGEN_LINE_PT_PIN);
+  float five = ReadSensor2(FUEL_INLET_PT_PIN);
+  float six = ReadSensor2(FUEL_OUTLET_PT_PIN);
+  float seven = ReadSensor2(CHAMBER_PRESSURE_PT_PIN);
+  float eight = ReadLoadCell(LC_PIN);
 
-  struct data mydata = {header, n2_pt, o2_pt, ign_pt, load_cell, footer};
+  struct data mydata = {header, one, two, three, four, five, six, seven, eight, footer};
   
   uint8_t * packet = (uint8_t *) &mydata;
   
@@ -122,6 +174,7 @@ void SendData() {
 
   // Send packet over serial
   Serial.write((char *)packet, dataSize);
+  //Serial.flush();
 }
 
 void CheckForCommand() {
@@ -130,65 +183,91 @@ void CheckForCommand() {
     String input = Serial.readStringUntil('\n');
 
     if (input == "VALVE: nitrogen open") {
-      digitalWrite(nitrogenPin, LOW); // Set LED to HIGH
-      // Serial.println("Nitrogen open!"); // Send a confirmation message over serial
-      String msg = "Nitrogen open!";
-      // SendString(msg);
+      NitrogenServo.write(90); // 90 degrees = OPEN
+      //String msg = "Nitrogen open!";
+      //SendString(msg);
     } else if (input == "VALVE: nitrogen close") {
-      digitalWrite(nitrogenPin, HIGH);
-      String msg = "Nitrogen close!";
-      // SendString(msg);
-    }
-    else if (input == "VALVE: ethanol open") {
-      digitalWrite(ethanolPin, LOW);
-      String msg = "Ethanol open!";
-      // SendString(msg);
-    } else if (input == "VALVE: ethanol close") {
-      digitalWrite(ethanolPin, HIGH);
-      String msg = "Ethanol close!";
-      // SendString(msg);
-    }
-    else if (input == "VALVE: bleed open") {
-      digitalWrite(bleedPin, HIGH);
-      String msg = "Bleed open!";
-      // SendString(msg);
-    } else if (input == "VALVE: bleed close") {
-      digitalWrite(bleedPin, LOW);
-      String msg = "Bleed close!";
-      // SendString(msg);
-    }
-    else if (input == "VALVE: oxygen open") {
-      digitalWrite(oxygenPin, LOW);
-      String msg = "Oxygen open!";
-      // SendString(msg);
-    } else if (input == "VALVE: oxygen close") {
-      digitalWrite(oxygenPin, HIGH);
-      String msg = "Oxygen close!";
-      // SendString(msg);
-    }
-    
-    if (input == "s1") {
-      digitalWrite(sparkPin, LOW);
-      analogWrite(rpmPin, 5);
-      String msg = "Spark on!";
-      // SendString(msg);
-    } else if (input == "s2") {
-      digitalWrite(sparkPin, HIGH);
-      analogWrite(rpmPin, 0);
-      String msg = "Spark off!";
-      // SendString(msg);
+      NitrogenServo.write(180); // 180 degrees = CLOSED
+      //String msg = "Nitrogen close!";
+      //SendString(msg);
     }
 
-    if (input == "dump prep") {
-      DumpPrep();
-    } else if (input == "hotfire 1") {
-      HotFire1();
-    } else if (input == "hotfire 2") {
-      HotFire2();
-    } else if (input == "depress") {
-      Depress();
-    } else if (input == "reset") {
-      ResetAll();
+    else if (input == "VALVE: purge open") {
+      PurgeServo.write(90); // 90 degrees = OPEN
+      //String msg = "Purge open!";
+      //SendString(msg);
+    } else if (input == "VALVE: purge close") {
+      PurgeServo.write(180); // 180 degrees = CLOSED
+      //String msg = "Purge close!";
+      //SendString(msg);
+    }
+
+    else if (input == "VALVE: main ethanol open") {
+      MainEthanolServo.write(90); // 90 degrees = OPEN
+      //String msg = "Main ethanol open!";
+      //SendString(msg);
+    } else if (input == "VALVE: main ethanol close") {
+      MainEthanolServo.write(180); // 180 degrees = CLOSED
+      //String msg = "Main ethanol close!";
+      //SendString(msg);
+    }
+
+    else if (input == "VALVE: main nitrous open") {
+      MainNitrousServo.write(90); // 90 degrees = OPEN
+      //String msg = "Main nitrous open!";
+      //SendString(msg);
+    } else if (input == "VALVE: main nitrous close") {
+      MainNitrousServo.write(180); // 180 degrees = CLOSED
+      //String msg = "Main nitrous close!";
+      //SendString(msg);
+    }
+
+    else if (input == "VALVE: ASI ethanol open") {
+      digitalWrite(asiEthanolPin, LOW); // want to flip thisssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+      //String msg = "ASI ethanol open!";
+      //SendString(msg);
+    } else if (input == "VALVE: ASI ethanol close") {
+      digitalWrite(asiEthanolPin, HIGH);
+      //String msg = "ASI ethanol close!";
+      //SendString(msg);
+    }
+
+    else if (input == "VALVE: ASI oxygen open") {
+      digitalWrite(asiOxygenPin, LOW);
+      //String msg = "ASI oxygen open!";
+      //SendString(msg);
+    } else if (input == "VALVE: ASI oxygen close") {
+      digitalWrite(asiOxygenPin, HIGH);
+      //String msg = "ASI oxygen close!";
+      //SendString(msg);
+    }
+
+    else if (input == "VALVE: nitrogen bleed open") {
+      digitalWrite(nitrogenBleedPin, HIGH); // normally CLOSED valve
+      //String msg = "Nitrogen bleed open!";
+      //SendString(msg);
+    } else if (input == "VALVE: nitrogen bleed close") {
+      digitalWrite(nitrogenBleedPin, LOW);
+      //String msg = "Nitrogen bleed close!";
+      //SendString(msg);
+    }
+
+    else if (input == "SPARK: on") {
+      digitalWrite(sparkPin, LOW);
+      analogWrite(rpmPin, 5); // 2% duty cycle PWM wave
+      //String msg = "Spark on!";
+      //SendString(msg);
+    } else if (input == "SPARK: off") {
+      digitalWrite(sparkPin, HIGH);
+      analogWrite(rpmPin, 0);
+      //String msg = "Spark off!";
+      //SendString(msg);
+    }
+
+
+
+    if (input == "testseq") {
+      testSequence();
     }
   }
 }
@@ -243,65 +322,20 @@ void SendString(String strData) {
   Serial.write(packetBuffer, totalSize);
 }
 
-void DumpPrep() {
-  digitalWrite(bleedPin, LOW);
-  digitalWrite(ethanolPin, HIGH);
-  digitalWrite(nitrogenPin, HIGH);
-  //delay(500);
-  while((millis() - timer) < 500) {
-    SendData();
-  }
-  digitalWrite(nitrogenPin, LOW);
-}
+void testSequence() {
 
-void HotFire1() {
-  digitalWrite(ethanolPin, HIGH);
-  digitalWrite(oxygenPin, HIGH);
-  digitalWrite(bleedPin, LOW);
-  digitalWrite(nitrogenPin, LOW);
-}
+  for(unsigned int i = 1; i <= 20; i++)
+  {
+    digitalWrite(asiOxygenPin, LOW);
+    //delay(300);
+    while((millis() - timer) < i*400 - 200) {
+      SendData();
+    }
+    digitalWrite(asiOxygenPin, HIGH);
+    //delay(300);
+    while((millis() - timer) < i*400) {
+      SendData();
+    }
+  }
 
-void HotFire2() {
-  digitalWrite(oxygenPin, LOW);
-  digitalWrite(sparkPin, LOW);
-  analogWrite(rpmPin, 5);
-  //delay(300);
-  while((millis() - timer) < 300) {
-    SendData();
-  }
-  digitalWrite(ethanolPin, LOW);
-  //delay(2000);
-  while((millis() - timer) < 2300) {
-    SendData();
-  }
-  digitalWrite(ethanolPin, HIGH);
-  //delay(300);
-  while((millis() - timer) < 2600) {
-    SendData();
-  }
-  digitalWrite(sparkPin, HIGH);
-  analogWrite(rpmPin, 0);
-  digitalWrite(oxygenPin, HIGH);
-}
-
-void Depress() {
-  digitalWrite(nitrogenPin, HIGH);
-  //delay(100);
-  while((millis() - timer) < 100) {
-    SendData();
-  }
-  digitalWrite(bleedPin, HIGH);
-  digitalWrite(ethanolPin, LOW);
-  //delay(1000);
-  while((millis() - timer) < 1100) {
-    SendData();
-  }
-  digitalWrite(ethanolPin, HIGH);
-}
-
-void ResetAll() {
-  digitalWrite(nitrogenPin, HIGH);
-  digitalWrite(ethanolPin, HIGH);
-  digitalWrite(oxygenPin, HIGH);
-  digitalWrite(bleedPin, HIGH);
 }
