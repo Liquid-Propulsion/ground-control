@@ -16,7 +16,7 @@ class custom_graph_widget(pg.PlotWidget):
         self.values = {}
 
     def setup_connection(self, current_frame):
-        self.plotItem.addLegend()
+        #self.plotItem.addLegend()
         
         self.current_frame = current_frame
         for count, index in enumerate(self.indexes):

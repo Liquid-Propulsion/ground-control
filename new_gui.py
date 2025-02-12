@@ -38,14 +38,14 @@ class GroundControlWindow(QtWidgets.QWidget):
     def setup_graphs(self):
         self.graphs = []
 
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[1], names=('Nitrogen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[2], names=('Ethanol Tank Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[3], names=('Nitrous Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[4], names=('Oxygen Line Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[5], names=('Fuel Inlet Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[6], names=('Fuel Outlet Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[7], names=('Engine Chamber Pressure'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[8], names=('Load Cell'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[1], names=('Nitrogen Line Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[2], names=('Ethanol Tank Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[3], names=('Nitrous Line Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[4], names=('Oxygen Line Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[5], names=('Fuel Inlet Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[6], names=('Fuel Outlet Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[7], names=('Engine Chamber Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[8], names=('Load Cell (lbf)'), start=self.program_start_time))
        
         self.layout.addWidget(self.graphs[0], 0, 0)
         self.layout.addWidget(self.graphs[1], 0, 1)

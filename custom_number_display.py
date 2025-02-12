@@ -14,4 +14,4 @@ class custom_number_display(QtWidgets.QLabel):
         self.current_frame = current_frame
 
     def update_value(self):
-        self.setText(str(self.name) + ": " + str(self.current_frame[self.index]))
+        self.setText(str(self.name) + ": " + str(self.current_frame[self.index])[:6])
