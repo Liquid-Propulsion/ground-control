@@ -3,7 +3,7 @@
 // Valve Pins
 const int nitrogenPin = 6; // servo (PWM)
 const int purgePin = 0; // servo (PWM)
-const int mainEthanolPin = 0; // servo (PWM)
+const int mainEthanolPin = 11; // servo (PWM)
 const int mainNitrousPin = 0; // servo (PWM)
 const int asiEthanolPin = 0; // solenoid (relay)
 const int asiOxygenPin = 5; // solenoid (relay)
@@ -32,6 +32,10 @@ const int CHAMBER_PRESSURE_PT_PIN = A0; // analog in
 const int LC_PIN = A0; // analog in, need to voltage divide so input is 0.0 - 5.0 volts
 
 
+const int CLOSED_ANGLE = 179; // 179 degrees = CLOSED
+const int OPEN_ANGLE = 91; // 91 degrees = OPEN
+
+
 unsigned long timer = millis(); // setting up the timer variable
 
 // As defined rn, struct string is I8fI
@@ -53,10 +57,10 @@ void setup() {
   Serial.setTimeout(50); // 50 milliseconds
 
   // Outputs
-  pinMode(nitrogenPin, OUTPUT);
-  pinMode(purgePin, OUTPUT);
-  pinMode(mainEthanolPin, OUTPUT);
-  pinMode(mainNitrousPin, OUTPUT);
+  //pinMode(nitrogenPin, OUTPUT);
+  //pinMode(purgePin, OUTPUT);
+  //pinMode(mainEthanolPin, OUTPUT);
+  //pinMode(mainNitrousPin, OUTPUT);
   pinMode(asiEthanolPin, OUTPUT);
   pinMode(asiOxygenPin, OUTPUT);
   pinMode(nitrogenBleedPin, OUTPUT);
@@ -65,7 +69,7 @@ void setup() {
 
   digitalWrite(asiEthanolPin, HIGH); // want to flip theseeeeeeeeeeeeeeeeeeeeeee (LOW should be default state)
   digitalWrite(asiOxygenPin, HIGH);
-  digitalWrite(nitrogenBleedPin, HIGH); // normally-open valve
+  digitalWrite(nitrogenBleedPin, HIGH); // normally-open valveeeeeeee
   digitalWrite(sparkPin, HIGH);
 
   NitrogenServo.attach(nitrogenPin);
@@ -73,10 +77,10 @@ void setup() {
   MainEthanolServo.attach(mainEthanolPin);
   MainNitrousServo.attach(mainNitrousPin);
 
-  NitrogenServo.write(180); // 180 degrees = CLOSED
-  PurgeServo.write(180);
-  MainEthanolServo.write(180);
-  MainNitrousServo.write(180);
+  NitrogenServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
+  PurgeServo.write(CLOSED_ANGLE);
+  MainEthanolServo.write(CLOSED_ANGLE);
+  MainNitrousServo.write(CLOSED_ANGLE);
 
   analogWrite(rpmPin, 0); // 0% duty cycle PWM wave
 
@@ -183,41 +187,41 @@ void CheckForCommand() {
     String input = Serial.readStringUntil('\n');
 
     if (input == "VALVE: nitrogen open") {
-      NitrogenServo.write(90); // 90 degrees = OPEN
+      NitrogenServo.write(OPEN_ANGLE); // 91 degrees = OPEN
       //String msg = "Nitrogen open!";
       //SendString(msg);
     } else if (input == "VALVE: nitrogen close") {
-      NitrogenServo.write(180); // 180 degrees = CLOSED
+      NitrogenServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
       //String msg = "Nitrogen close!";
       //SendString(msg);
     }
 
     else if (input == "VALVE: purge open") {
-      PurgeServo.write(90); // 90 degrees = OPEN
+      PurgeServo.write(OPEN_ANGLE); // 91 degrees = OPEN
       //String msg = "Purge open!";
       //SendString(msg);
     } else if (input == "VALVE: purge close") {
-      PurgeServo.write(180); // 180 degrees = CLOSED
+      PurgeServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
       //String msg = "Purge close!";
       //SendString(msg);
     }
 
     else if (input == "VALVE: main ethanol open") {
-      MainEthanolServo.write(90); // 90 degrees = OPEN
+      MainEthanolServo.write(OPEN_ANGLE); // 91 degrees = OPEN
       //String msg = "Main ethanol open!";
       //SendString(msg);
     } else if (input == "VALVE: main ethanol close") {
-      MainEthanolServo.write(180); // 180 degrees = CLOSED
+      MainEthanolServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
       //String msg = "Main ethanol close!";
       //SendString(msg);
     }
 
     else if (input == "VALVE: main nitrous open") {
-      MainNitrousServo.write(90); // 90 degrees = OPEN
+      MainNitrousServo.write(OPEN_ANGLE); // 91 degrees = OPEN
       //String msg = "Main nitrous open!";
       //SendString(msg);
     } else if (input == "VALVE: main nitrous close") {
-      MainNitrousServo.write(180); // 180 degrees = CLOSED
+      MainNitrousServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
       //String msg = "Main nitrous close!";
       //SendString(msg);
     }
