@@ -107,7 +107,7 @@ void loop() {
   //delay(10);
   //Serial.flush();
 
-  timer = millis(); // constantly update the timer while the main loop is running, but it will NOT update while one of the hotfire commands is running
+  //timer = millis(); // constantly update the timer while the main loop is running, but it will NOT update while one of the hotfire commands is running
 }
 
 float ReadSensor(int pin) {
@@ -269,9 +269,13 @@ void CheckForCommand() {
     }
 
 
+    // HOTFIRE SEQUENCES:
 
-    if (input == "testseq") {
-      testSequence();
+    if (input == "asitest") {
+      asiTest();
+    }
+    else if (input == "waterflow") {
+      waterFlow();
     }
   }
 }
@@ -326,20 +330,37 @@ void SendString(String strData) {
   Serial.write(packetBuffer, totalSize);
 }
 
-void testSequence() {
+void delayAndSendData(unsigned long delay) {
+  timer = millis(); // update the timer
 
-  for(unsigned int i = 1; i <= 20; i++)
-  {
-    digitalWrite(asiOxygenPin, LOW);
-    //delay(300);
-    while((millis() - timer) < i*400 - 200) {
-      SendData();
-    }
-    digitalWrite(asiOxygenPin, HIGH);
-    //delay(300);
-    while((millis() - timer) < i*400) {
-      SendData();
-    }
+  while (millis() - timer < delay) {
+    SendData();
   }
+}
 
+// HOTFIRE SEQUENCES:
+
+// ASI TEST SEQUENCE
+void asiTest() {
+  digitalWrite(asiOxygenPin, LOW);
+  digitalWrite(sparkPin, LOW);
+  analogWrite(rpmPin, 5);
+  delayAndSendData(300);
+  digitalWrite(asiEthanolPin, LOW);
+  delayAndSendData(2000);
+  digitalWrite(asiEthanolPin, HIGH);
+  digitalWrite(sparkPin, HIGH);
+  analogWrite(rpmPin, 0);
+  delayAndSendData(300);
+  digitalWrite(asiOxygenPin, HIGH);
+}
+
+// PINTLE WATER FLOW SEQUENCE
+void waterFlow() {
+  MainNitrousServo.write(OPEN_ANGLE);
+  delayAndSendData(2000);
+  MainEthanolServo.write(OPEN_ANGLE);
+  delayAndSendData(3000);
+  MainNitrousServo.write(CLOSED_ANGLE);
+  MainEthanolServo.write(CLOSED_ANGLE);
 }
