@@ -1,5 +1,10 @@
 import sys
 from time import time
+
+# Set PyQtGraph to use PySide6 before any other imports
+import os
+os.environ['PYQTGRAPH_QT_LIB'] = 'PySide6'
+
 import pyqtgraph as pg
 from PySide6 import QtCore, QtWidgets
 import qdarkstyle
@@ -22,6 +27,7 @@ class GroundControlWindow(QtWidgets.QWidget):
 
         self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyside6'))
         
+        # PyQtGraph background is now set after QApplication exists
         pg.setConfigOption('background', 'black')
          
         self.program_start_time = time()
@@ -92,6 +98,7 @@ class GroundControlWindow(QtWidgets.QWidget):
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     app.setStyle('Fusion')
+    pg.setConfigOptions(antialias=True, useOpenGL=False)
 
     window = GroundControlWindow()
     window.resize(1800, 1000)
