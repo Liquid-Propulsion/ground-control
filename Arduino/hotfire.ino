@@ -1,13 +1,13 @@
 #include <Servo.h>
 
 // Valve Pins
-const int nitrogenPin = 6; // servo (PWM)
-const int purgePin = 0; // servo (PWM)
-const int mainEthanolPin = 11; // servo (PWM)
-const int mainNitrousPin = 0; // servo (PWM)
-const int asiEthanolPin = 0; // solenoid (relay)
-const int asiOxygenPin = 5; // solenoid (relay)
-const int nitrogenBleedPin = 0; // solenoid (relay)
+const int nitrogenPin = 10; // servo (PWM)
+const int purgePin = 6; // servo (PWM)
+const int mainEthanolPin = 3; // servo (PWM)
+const int mainNitrousPin = 9; // servo (PWM)
+const int asiEthanolPin = 7; // solenoid (relay)
+const int asiOxygenPin = 4; // solenoid (relay)
+const int nitrogenBleedPin = 12; // solenoid (relay)
 
 // Valve Servos
 Servo NitrogenServo;
@@ -16,17 +16,17 @@ Servo MainEthanolServo;
 Servo MainNitrousServo;
 
 // Spark Plug Pins
-const int sparkPin = 0; // to close the relay for the exciter box (relay)
-const int rpmPin = 0; // to write the PWM wave to (PWM)
+const int sparkPin = 8; // to close the relay for the exciter box (relay)
+const int rpmPin = 5; // to write the PWM wave to (PWM)
 
 // PT Pins
-const int NITROGEN_LINE_PT_PIN = A0; // analog in
-const int ETHANOL_TANK_PT_PIN = A0; // analog in
-const int NITROUS_LINE_PT_PIN = A0; // analog in
-const int OXYGEN_LINE_PT_PIN = A0; // analog in
-const int FUEL_INLET_PT_PIN = A0; // analog in
-const int FUEL_OUTLET_PT_PIN = A0; // analog in
-const int CHAMBER_PRESSURE_PT_PIN = A0; // analog in
+const int NITROGEN_LINE_PT_PIN = A2; // analog in
+const int ETHANOL_TANK_PT_PIN = A3; // analog in
+const int NITROUS_LINE_PT_PIN = A4; // analog in
+const int OXYGEN_LINE_PT_PIN = A1; // analog in
+const int FUEL_INLET_PT_PIN = A3; // analog in
+const int FUEL_OUTLET_PT_PIN = A3; // analog in
+const int CHAMBER_PRESSURE_PT_PIN = A5; // analog in
 
 // Load Cell Pin
 const int LC_PIN = A0; // analog in, need to voltage divide so input is 0.0 - 5.0 volts
@@ -277,6 +277,10 @@ void CheckForCommand() {
     else if (input == "waterflow") {
       waterFlow();
     }
+    else if (input == "3second") {
+      threeSecondHotFire();
+    }
+
   }
 }
 
@@ -358,9 +362,52 @@ void asiTest() {
 // PINTLE WATER FLOW SEQUENCE
 void waterFlow() {
   MainNitrousServo.write(OPEN_ANGLE);
-  delayAndSendData(2000);
+  delayAndSendData(1000);
   MainEthanolServo.write(OPEN_ANGLE);
-  delayAndSendData(3000);
+  delayAndSendData(2000);
   MainNitrousServo.write(CLOSED_ANGLE);
   MainEthanolServo.write(CLOSED_ANGLE);
+}
+
+// 3 SECOND HOTFIRE SEQUENCE
+void threeSecondHotFire() {
+  // Pre Purge
+  PurgeServo.write(OPEN_ANGLE);
+  delayAndSendData(1000); // purge 1000 ms
+  PurgeServo.write(CLOSED_ANGLE);
+
+  // ASI Start
+  digitalWrite(asiOxygenPin, LOW); // asi gox open
+  digitalWrite(sparkPin, LOW); // spark on
+  analogWrite(rpmPin, 5); // spark on
+  delayAndSendData(300); // wait 300 ms
+  digitalWrite(asiEthanolPin, LOW); // asi ethanol open -- STAYS OPEN WHOLE FIRE DURATION
+  delayAndSendData(500); // 500 ms of ASI running
+
+  // Main Valves
+  MainNitrousServo.write(OPEN_ANGLE); // main nitrous open
+  delayAndSendData(200); // wait 200 ms
+  MainEthanolServo.write(OPEN_ANGLE); // main ethanol open
+
+  delayAndSendData(1300); // 1300 ms of ASI running WITH main valves open
+
+  // ASI Shutoff - asi ethanol stays OPEN
+  digitalWrite(sparkPin, HIGH);
+  analogWrite(rpmPin, 0);
+  digitalWrite(asiOxygenPin, HIGH);
+
+  // Main burn w/ ASI OFF
+  delayAndSendData(1200); // 1200 ms of main valves open
+
+  // SHUTDOWN
+  digitalWrite(asiEthanolPin, HIGH); // asi ethanol CLOSE
+  MainEthanolServo.write(CLOSED_ANGLE); // main ethanol CLOSE
+  delayAndSendData(200); // wait 200 ms
+  MainNitrousServo.write(CLOSED_ANGLE); // main nitrous CLOSE
+
+  // Post Purge
+  delayAndSendData(500); // wait 500 ms BEFORE starting the purge
+  PurgeServo.write(OPEN_ANGLE);
+  delayAndSendData(1500); // purge 1500 ms
+  PurgeServo.write(CLOSED_ANGLE);
 }
