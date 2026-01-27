@@ -1,10 +1,5 @@
 import sys
 from time import time
-
-# Set PyQtGraph to use PySide6 before any other imports
-import os
-os.environ['PYQTGRAPH_QT_LIB'] = 'PySide6'
-
 import pyqtgraph as pg
 from PySide6 import QtCore, QtWidgets
 import qdarkstyle
@@ -27,7 +22,6 @@ class GroundControlWindow(QtWidgets.QWidget):
 
         self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyside6'))
         
-        # PyQtGraph background is now set after QApplication exists
         pg.setConfigOption('background', 'black')
          
         self.program_start_time = time()
@@ -52,6 +46,24 @@ class GroundControlWindow(QtWidgets.QWidget):
         self.graphs.append(custom_graph_widget(indexes_in_struct=[6], names=('Fuel Outlet Pressure (psig)'), start=self.program_start_time))
         self.graphs.append(custom_graph_widget(indexes_in_struct=[7], names=('Engine Chamber Pressure (psig)'), start=self.program_start_time))
         self.graphs.append(custom_graph_widget(indexes_in_struct=[8], names=('Load Cell (lbf)'), start=self.program_start_time))
+        
+        self.graphs[0].setYRange(0, 1000)
+        self.graphs[1].setYRange(0, 1000)
+        self.graphs[2].setYRange(0, 1000)
+        self.graphs[3].setYRange(0, 200)
+        self.graphs[4].setYRange(0, 1000)
+        self.graphs[5].setYRange(0, 1000)
+        self.graphs[6].setYRange(0, 1000)
+        self.graphs[7].setYRange(0, 1100)
+        
+        self.graphs[0].showGrid(x = True, y = True)
+        self.graphs[1].showGrid(x = True, y = True)
+        self.graphs[2].showGrid(x = True, y = True)
+        self.graphs[3].showGrid(x = True, y = True)
+        self.graphs[4].showGrid(x = True, y = True)
+        self.graphs[5].showGrid(x = True, y = True)
+        self.graphs[6].showGrid(x = True, y = True)
+        self.graphs[7].showGrid(x = True, y = True)
        
         self.layout.addWidget(self.graphs[0], 0, 0)
         self.layout.addWidget(self.graphs[1], 0, 1)
@@ -98,7 +110,6 @@ class GroundControlWindow(QtWidgets.QWidget):
 if __name__ == "__main__":
     app = QtWidgets.QApplication([])
     app.setStyle('Fusion')
-    pg.setConfigOptions(antialias=True, useOpenGL=False)
 
     window = GroundControlWindow()
     window.resize(1800, 1000)
