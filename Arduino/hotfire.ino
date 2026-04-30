@@ -5,6 +5,7 @@ const int nitrogenPin = 10; // servo (PWM)
 const int purgePin = 6; // servo (PWM)
 const int mainEthanolPin = 3; // servo (PWM)
 const int mainNitrousPin = 9; // servo (PWM)
+const int nitrousFillPin = 11; // servo (PWM)
 const int asiEthanolPin = 7; // solenoid (relay)
 const int asiOxygenPin = 4; // solenoid (relay)
 const int nitrogenBleedPin = 12; // solenoid (relay)
@@ -14,22 +15,24 @@ Servo NitrogenServo;
 Servo PurgeServo;
 Servo MainEthanolServo;
 Servo MainNitrousServo;
+Servo NitrousFillServo;
 
 // Spark Plug Pins
 const int sparkPin = 8; // to close the relay for the exciter box (relay)
 const int rpmPin = 5; // to write the PWM wave to (PWM)
 
 // PT Pins
+const int NITROUS_FILL_PT_PIN = A1; // analog in
 const int NITROGEN_LINE_PT_PIN = A2; // analog in
 const int ETHANOL_TANK_PT_PIN = A3; // analog in
-const int NITROUS_LINE_PT_PIN = A4; // analog in
-const int OXYGEN_LINE_PT_PIN = A1; // analog in
-const int FUEL_INLET_PT_PIN = A3; // analog in
-const int FUEL_OUTLET_PT_PIN = A3; // analog in
+const int NITROUS_TANK_PT_PIN = A4; // analog in
 const int CHAMBER_PRESSURE_PT_PIN = A5; // analog in
+//const int FUEL_INLET_PT_PIN = ; // analog in <--- NOT ENOUGH PINS
+//const int FUEL_OUTLET_PT_PIN = ; // analog in <--- NOT ENOUGH PINS
+//const int OXYGEN_LINE_PT_PIN = ; // analog in <--- NOT ENOUGH PINS
 
 // Load Cell Pin
-const int LC_PIN = A0; // analog in, need to voltage divide so input is 0.0 - 5.0 volts
+const int LC_PIN = A0; // analog in, need to voltage divide so input is 0.0 - 5.0 volts ????????????????????? (not actually voltage divided atm)
 
 
 const int CLOSED_ANGLE = 179; // 179 degrees = CLOSED
@@ -38,7 +41,7 @@ const int OPEN_ANGLE = 91; // 91 degrees = OPEN
 
 unsigned long timer = millis(); // setting up the timer variable
 
-// As defined rn, struct string is I8fI
+// As defined rn, struct string is I6fI
 struct data {
   uint32_t header;
   float val1;
@@ -47,8 +50,6 @@ struct data {
   float val4;
   float val5;
   float val6;
-  float val7;
-  float val8;
   uint32_t footer;
 };
 
@@ -61,6 +62,7 @@ void setup() {
   //pinMode(purgePin, OUTPUT);
   //pinMode(mainEthanolPin, OUTPUT);
   //pinMode(mainNitrousPin, OUTPUT);
+  //pinMode(nitrousFillPin, OUTPUT);
   pinMode(asiEthanolPin, OUTPUT);
   pinMode(asiOxygenPin, OUTPUT);
   pinMode(nitrogenBleedPin, OUTPUT);
@@ -76,23 +78,26 @@ void setup() {
   PurgeServo.attach(purgePin);
   MainEthanolServo.attach(mainEthanolPin);
   MainNitrousServo.attach(mainNitrousPin);
+  NitrousFillServo.attach(nitrousFillPin);
 
   NitrogenServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
   PurgeServo.write(CLOSED_ANGLE);
   MainEthanolServo.write(CLOSED_ANGLE);
   MainNitrousServo.write(CLOSED_ANGLE);
+  NitrousFillServo.write(CLOSED_ANGLE);
 
   analogWrite(rpmPin, 0); // 0% duty cycle PWM wave
 
 
   // Inputs
+  pinMode(NITROUS_FILL_PT_PIN, INPUT);
   pinMode(NITROGEN_LINE_PT_PIN, INPUT);
   pinMode(ETHANOL_TANK_PT_PIN, INPUT);
-  pinMode(NITROUS_LINE_PT_PIN, INPUT);
-  pinMode(OXYGEN_LINE_PT_PIN, INPUT);
-  pinMode(FUEL_INLET_PT_PIN, INPUT);
-  pinMode(FUEL_OUTLET_PT_PIN, INPUT);
+  pinMode(NITROUS_TANK_PT_PIN, INPUT);
   pinMode(CHAMBER_PRESSURE_PT_PIN, INPUT);
+  //pinMode(FUEL_INLET_PT_PIN, INPUT);
+  //pinMode(FUEL_OUTLET_PT_PIN, INPUT);
+  //pinMode(OXYGEN_LINE_PT_PIN, INPUT);
   pinMode(LC_PIN, INPUT);
 }
 
@@ -146,10 +151,11 @@ float ReadSensor2(int pin) {
 
 float ReadLoadCell(int pin) {
   int rawVal = analogRead(pin); // read the input pin
-  float rawVolt = (float)rawVal / 204.6; // convert to a voltage value 0.0 to 5.0 volts
+  float rawVolt = (float)rawVal / 204.6; // convert to a voltage value 0.0 to 5.0 volts (anything over 5V would be out of range of the Arduino)
   // 0.0V = 0kg
-  // 5.0V = 1000kg
-  float normalized = rawVolt / 5; // normalize from 0.0 to 1.0 --> 0.0 = 0kg, 1.0 = 1000kg
+  // 5.0V = 500kg
+  // 10.0V = 1000kg
+  float normalized = rawVolt / 10; // normalize from 0.0 to 1.0 --> 0.0 = 0kg, 0.5 = 500kg, 1.0 = 1000kg (anything over 500kg would be out of range of the Arduino)
   float kg = normalized * 1000; // convert to kg value
   float lbs = kg * 2.20462; // convert to lbs
   
@@ -163,13 +169,11 @@ void SendData() {
   float one = ReadSensor2(NITROGEN_LINE_PT_PIN);
   float two = ReadSensor2(ETHANOL_TANK_PT_PIN);
   float three = ReadSensor2(NITROUS_LINE_PT_PIN);
-  float four = ReadSensor(OXYGEN_LINE_PT_PIN);
-  float five = ReadSensor2(FUEL_INLET_PT_PIN);
-  float six = ReadSensor2(FUEL_OUTLET_PT_PIN);
-  float seven = ReadSensor2(CHAMBER_PRESSURE_PT_PIN);
-  float eight = ReadLoadCell(LC_PIN);
+  float four = ReadSensor2(NITROUS_TANK_PT_PIN);
+  float five = ReadSensor2(CHAMBER_PRESSURE_PT_PIN);
+  float six = ReadLoadCell(LC_PIN);
 
-  struct data mydata = {header, one, two, three, four, five, six, seven, eight, footer};
+  struct data mydata = {header, one, two, three, four, five, six, footer};
   
   uint8_t * packet = (uint8_t *) &mydata;
   
@@ -223,6 +227,16 @@ void CheckForCommand() {
     } else if (input == "VALVE: main nitrous close") {
       MainNitrousServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
       //String msg = "Main nitrous close!";
+      //SendString(msg);
+    }
+
+    else if (input == "VALVE: nitrous fill open") {
+      nitrousFillServo.write(OPEN_ANGLE); // 91 degrees = OPEN
+      //String msg = "Nitrous fill open!";
+      //SendString(msg);
+    } else if (input == "VALVE: nitrous fill close") {
+      nitrousFillServo.write(CLOSED_ANGLE); // 179 degrees = CLOSED
+      //String msg = "Nitrous fill close!";
       //SendString(msg);
     }
 
@@ -349,13 +363,13 @@ void asiTest() {
   digitalWrite(asiOxygenPin, LOW);
   digitalWrite(sparkPin, LOW);
   analogWrite(rpmPin, 5);
-  delayAndSendData(300);
+  delayAndSendData(150);
   digitalWrite(asiEthanolPin, LOW);
-  delayAndSendData(2000);
+  delayAndSendData(1000);
   digitalWrite(asiEthanolPin, HIGH);
   digitalWrite(sparkPin, HIGH);
   analogWrite(rpmPin, 0);
-  delayAndSendData(300);
+  delayAndSendData(150);
   digitalWrite(asiOxygenPin, HIGH);
 }
 
@@ -373,14 +387,14 @@ void waterFlow() {
 void threeSecondHotFire() {
   // Pre Purge
   PurgeServo.write(OPEN_ANGLE);
-  delayAndSendData(1000); // purge 1000 ms
+  delayAndSendData(500); // purge 500 ms
   PurgeServo.write(CLOSED_ANGLE);
 
   // ASI Start
   digitalWrite(asiOxygenPin, LOW); // asi gox open
   digitalWrite(sparkPin, LOW); // spark on
   analogWrite(rpmPin, 5); // spark on
-  delayAndSendData(300); // wait 300 ms
+  delayAndSendData(150); // wait 150 ms
   digitalWrite(asiEthanolPin, LOW); // asi ethanol open -- STAYS OPEN WHOLE FIRE DURATION
   delayAndSendData(500); // 500 ms of ASI running
 
@@ -389,7 +403,7 @@ void threeSecondHotFire() {
   delayAndSendData(200); // wait 200 ms
   MainEthanolServo.write(OPEN_ANGLE); // main ethanol open
 
-  delayAndSendData(1300); // 1300 ms of ASI running WITH main valves open
+  delayAndSendData(500); // 500 ms of ASI running WITH main valves open
 
   // ASI Shutoff - asi ethanol stays OPEN
   digitalWrite(sparkPin, HIGH);
@@ -397,7 +411,7 @@ void threeSecondHotFire() {
   digitalWrite(asiOxygenPin, HIGH);
 
   // Main burn w/ ASI OFF
-  delayAndSendData(1200); // 1200 ms of main valves open
+  delayAndSendData(3000); // 3000 ms of main valves open
 
   // SHUTDOWN
   digitalWrite(asiEthanolPin, HIGH); // asi ethanol CLOSE
