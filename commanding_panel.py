@@ -125,13 +125,17 @@ class commanding_panel(QtWidgets.QLabel):
         self.asi_spark_plug = spark_actuation_widget("ASI Spark Plug")
         self.layout.addWidget(self.asi_spark_plug, 3, 1)
 
+        # Nitrous Fill Valve Actuation
+        self.nitrous_fill_valve = valve_actuation_widget("Nitrous Fill Valve")
+        self.layout.addWidget(self.nitrous_fill_valve, 4, 0)
+        
         # Empty Space
-        self.layout.addWidget(QtWidgets.QLabel(""), 4, 0)
+        self.layout.addWidget(QtWidgets.QLabel(""), 5, 0)
 
         # Sequence Control
         self.sequence_command = QtWidgets.QLineEdit()
         self.sequence_command.setPlaceholderText("Choose Sequence")
-        self.layout.addWidget(self.sequence_command, 5, 0, 1, 2)
+        self.layout.addWidget(self.sequence_command, 6, 0, 1, 2)
         
         self.start_sequence_button = QtWidgets.QPushButton("Start Sequence")
         self.start_sequence_button.setStyleSheet("""
@@ -146,7 +150,7 @@ class commanding_panel(QtWidgets.QLabel):
             }
         """)
         self.start_sequence_button.setCursor(QtCore.Qt.PointingHandCursor)
-        self.layout.addWidget(self.start_sequence_button, 6, 0, 1, 2)
+        self.layout.addWidget(self.start_sequence_button, 7, 0, 1, 2)
         
         self.abort_sequence_button = QtWidgets.QPushButton("Abort Sequence")
         self.abort_sequence_button.setStyleSheet("""
@@ -161,7 +165,7 @@ class commanding_panel(QtWidgets.QLabel):
             }
         """)
         self.abort_sequence_button.setCursor(QtCore.Qt.PointingHandCursor)
-        self.layout.addWidget(self.abort_sequence_button, 7, 0, 1, 2)
+        self.layout.addWidget(self.abort_sequence_button, 8, 0, 1, 2)
 
     def connect_functionality(self):
         # self.sequence_command.returnPressed.connect(self.send_command_and_clear_text)
@@ -191,6 +195,9 @@ class commanding_panel(QtWidgets.QLabel):
         
         self.asi_spark_plug.open_button.clicked.connect(lambda : self.send_command("SPARK: on"))
         self.asi_spark_plug.close_button.clicked.connect(lambda : self.send_command("SPARK: off"))
+        
+        self.nitrous_fill_valve.open_button.clicked.connect(lambda : self.send_command("VALVE: nitrous fill open"))
+        self.nitrous_fill_valve.close_button.clicked.connect(lambda : self.send_command("VALVE: nitrous fill close"))
 
     def open_dropmech(self):
         try:

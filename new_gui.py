@@ -40,21 +40,17 @@ class GroundControlWindow(QtWidgets.QWidget):
 
         self.graphs.append(custom_graph_widget(indexes_in_struct=[1], names=('Nitrogen Line Pressure (psig)'), start=self.program_start_time))
         self.graphs.append(custom_graph_widget(indexes_in_struct=[2], names=('Ethanol Tank Pressure (psig)'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[3], names=('Nitrous Line Pressure (psig)'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[4], names=('Oxygen Line Pressure (psig)'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[5], names=('Fuel Inlet Pressure (psig)'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[6], names=('Fuel Outlet Pressure (psig)'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[7], names=('Engine Chamber Pressure (psig)'), start=self.program_start_time))
-        self.graphs.append(custom_graph_widget(indexes_in_struct=[8], names=('Load Cell (lbf)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[3], names=('Nitrous Fill Line Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[4], names=('Nitrous Tank Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[5], names=('Engine Chamber Pressure (psig)'), start=self.program_start_time))
+        self.graphs.append(custom_graph_widget(indexes_in_struct=[6], names=('Load Cell (lbf)'), start=self.program_start_time))
         
         self.graphs[0].setYRange(0, 1000)
         self.graphs[1].setYRange(0, 1000)
         self.graphs[2].setYRange(0, 1000)
-        self.graphs[3].setYRange(0, 200)
+        self.graphs[3].setYRange(0, 1000)
         self.graphs[4].setYRange(0, 1000)
-        self.graphs[5].setYRange(0, 1000)
-        self.graphs[6].setYRange(0, 1000)
-        self.graphs[7].setYRange(0, 1100)
+        self.graphs[5].setYRange(0, 500)
         
         self.graphs[0].showGrid(x = True, y = True)
         self.graphs[1].showGrid(x = True, y = True)
@@ -62,17 +58,13 @@ class GroundControlWindow(QtWidgets.QWidget):
         self.graphs[3].showGrid(x = True, y = True)
         self.graphs[4].showGrid(x = True, y = True)
         self.graphs[5].showGrid(x = True, y = True)
-        self.graphs[6].showGrid(x = True, y = True)
-        self.graphs[7].showGrid(x = True, y = True)
        
         self.layout.addWidget(self.graphs[0], 0, 0)
         self.layout.addWidget(self.graphs[1], 0, 1)
         self.layout.addWidget(self.graphs[2], 0, 2)
-        self.layout.addWidget(self.graphs[3], 0, 3)
-        self.layout.addWidget(self.graphs[4], 1, 0)
-        self.layout.addWidget(self.graphs[5], 1, 1)
-        self.layout.addWidget(self.graphs[6], 1, 2)
-        self.layout.addWidget(self.graphs[7], 1, 3)
+        self.layout.addWidget(self.graphs[3], 1, 0)
+        self.layout.addWidget(self.graphs[4], 1, 1)
+        self.layout.addWidget(self.graphs[5], 1, 2)
 
     def init_widgets(self):
         #File input
